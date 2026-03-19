@@ -4,8 +4,7 @@ data class BirthdayBox(
     val id: String,
     val title: String,
     val description: String,
-    val iconRes: Int? = null,
-    val contentRawRes: Int? = null, // For video/audio
-    val contentDrawableRes: Int? = null, // For images
-    val contentText: String? = null
+    val emoji: String,
+    val accentColor: Long,           // ARGB hex e.g. 0xFFFFB5C8
+    val audioResIds: List<Int> = emptyList() // add multiple recordings to shuffle between
 )

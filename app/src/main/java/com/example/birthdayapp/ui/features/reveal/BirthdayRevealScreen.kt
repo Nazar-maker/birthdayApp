@@ -54,6 +54,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
 import android.net.Uri
+import android.view.LayoutInflater
 import kotlinx.coroutines.delay
 import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.SimpleColorFilter
@@ -193,10 +194,12 @@ fun BirthdayRevealScreen(onPlayVideo: () -> Unit) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Happy Birthday! \uD83D\uDC95",
+                        text = "Happy Birthday Baharym! \uD83D\uDC95",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = DeepWarmBrown // Beautiful warm chocolate-like brown
+                        color = DeepWarmBrown,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                     
                     Spacer(modifier = Modifier.height(32.dp))
@@ -231,32 +234,28 @@ fun BirthdayRevealScreen(onPlayVideo: () -> Unit) {
                                 .fillMaxWidth(0.9f)
                                 .aspectRatio(16f / 9f)
                                 .padding(vertical = 16.dp)
-                                .graphicsLayer { 
-                                    // Hardware acceleration clipping fix for shadows!
-                                    renderEffect = androidx.compose.ui.graphics.BlurEffect(0f, 0f)
-                                }
                                 .shadow(16.dp, RoundedCornerShape(16.dp))
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(DeepWarmBrown)
                         ) {
                             AndroidView(
                                 factory = { ctx ->
-                                    PlayerView(ctx).apply {
-                                        player = exoPlayer
-                                        useController = true
-                                        // Compact the player layout so it doesn't take 50%
-                                        setShowNextButton(false)
-                                        setShowPreviousButton(false)
-                                        setShowFastForwardButton(false)
-                                        setShowRewindButton(false)
-                                        controllerShowTimeoutMs = 2500
-                                        
-                                        // Fix the Out-Of-Bounds progress bar!
-                                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                                        // Add padding to physically squeeze the control bar inward 
-                                        // so it's not hiding behind the parent rounded corners
-                                        setPadding(42, 0, 42, 16)
-                                    }
+                                    // Inflate with surface_type="texture_view" so the player
+                                    // scrolls correctly — SurfaceView renders on a separate layer
+                                    // and glitches inside verticalScroll containers.
+                                    (LayoutInflater.from(ctx)
+                                        .inflate(R.layout.player_view, null) as PlayerView)
+                                        .apply {
+                                            player = exoPlayer
+                                            useController = true
+                                            setShowNextButton(false)
+                                            setShowPreviousButton(false)
+                                            setShowFastForwardButton(false)
+                                            setShowRewindButton(false)
+                                            controllerShowTimeoutMs = 2500
+                                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                            setPadding(42, 0, 42, 16)
+                                        }
                                 },
                                 modifier = Modifier.fillMaxSize()
                             )

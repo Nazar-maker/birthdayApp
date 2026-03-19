@@ -1,127 +1,260 @@
 package com.example.birthdayapp.ui.features.dashboard
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.birthdayapp.HeartbeatConfig
 import com.example.birthdayapp.data.model.BirthdayBox
+import com.example.birthdayapp.ui.theme.DeepWarmBrown
 import com.example.birthdayapp.ui.theme.PureWhite
 import com.example.birthdayapp.ui.theme.SoftCoral
 import com.example.birthdayapp.ui.theme.SoftPinkShadow
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun DashboardScreen(
     onBoxClick: (BirthdayBox) -> Unit,
     onReliveMoment: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    val db = remember { FirebaseFirestore.getInstance() }
+    var heartbeatSent by remember { mutableStateOf(false) }
+
     val boxes = listOf(
-        BirthdayBox("1", "Miss Me", "Open when you miss me"),
-        BirthdayBox("2", "Hungry", "Open when you are hungry"),
-        BirthdayBox("3", "Sad", "Open when you are sad"),
-        BirthdayBox("4", "Happy", "Open when you are happy")
+        BirthdayBox(
+            id = "1",
+            title = "Miss Me",
+            description = "A little message from me to you",
+            emoji = "🥺",
+            accentColor = 0xFFFFB5C8,
+            audioResIds = listOf() // add R.raw.miss_me_1, R.raw.miss_me_2, etc.
+        ),
+        BirthdayBox(
+            id = "2",
+            title = "Hungry",
+            description = "Something to make you smile",
+            emoji = "🍓",
+            accentColor = 0xFFFFD4A8,
+            audioResIds = listOf()
+        ),
+        BirthdayBox(
+            id = "3",
+            title = "Sad",
+            description = "I've got something to cheer you up",
+            emoji = "🫂",
+            accentColor = 0xFFD4B8F0,
+            audioResIds = listOf()
+        ),
+        BirthdayBox(
+            id = "4",
+            title = "Happy",
+            description = "Let's celebrate together",
+            emoji = "🎉",
+            accentColor = 0xFFFFE8A8,
+            audioResIds = listOf()
+        )
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .padding(horizontal = 20.dp)
     ) {
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text(
-            text = "OPEN WHEN...",
+            text = "Open When...",
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 24.dp)
+            fontWeight = FontWeight.Bold,
+            color = DeepWarmBrown
+        )
+        Text(
+            text = "tap a card to hear a message",
+            style = MaterialTheme.typography.bodyMedium,
+            color = DeepWarmBrown.copy(alpha = 0.5f)
         )
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(8.dp),
-            modifier = Modifier.weight(1f), // pushes the button below to the bottom
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        Spacer(modifier = Modifier.height(20.dp))
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(bottom = 8.dp)
         ) {
             items(boxes) { box ->
-                BoxCard(box = box, onClick = { onBoxClick(box) })
+                EnvelopeCard(box = box, onClick = { onBoxClick(box) })
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Relive Your Moment Button
+        // Primary action — Thinking of You
         Button(
-            onClick = onReliveMoment,
+            onClick = {
+                if (!heartbeatSent) {
+                    scope.launch {
+                        db.collection("pings").add(
+                            hashMapOf(
+                                "from" to HeartbeatConfig.THIS_USER_ID,
+                                "to" to HeartbeatConfig.OTHER_USER_ID,
+                                "senderName" to HeartbeatConfig.SENDER_NAME,
+                                "timestamp" to FieldValue.serverTimestamp()
+                            )
+                        ).await()
+                        heartbeatSent = true
+                        delay(3000)
+                        heartbeatSent = false
+                    }
+                }
+            },
             shape = RoundedCornerShape(32.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = SoftCoral,
+                containerColor = if (heartbeatSent) Color(0xFFE91E8C) else SoftCoral,
                 contentColor = PureWhite
             ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
                 .shadow(
-                    elevation = 12.dp,
+                    elevation = 10.dp,
                     shape = RoundedCornerShape(32.dp),
                     spotColor = SoftPinkShadow,
                     ambientColor = SoftPinkShadow
                 )
         ) {
             Text(
-                text = "Relive Your Moment \uD83C\uDF81",
+                text = if (heartbeatSent) "💗 Sent!" else "💗 Thinking of You",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
-        
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Secondary action
+        OutlinedButton(
+            onClick = onReliveMoment,
+            shape = RoundedCornerShape(32.dp),
+            border = BorderStroke(1.5.dp, SoftCoral.copy(alpha = 0.6f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = SoftCoral),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+        ) {
+            Text(
+                text = "Relive Your Moment \uD83C\uDF81",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-fun BoxCard(box: BirthdayBox, onClick: () -> Unit) {
+fun EnvelopeCard(box: BirthdayBox, onClick: () -> Unit) {
+    val accentColor = Color(box.accentColor)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = box.title.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold
+            // Emoji in a soft accent circle
+            Box(
+                modifier = Modifier
+                    .size(58.dp)
+                    .background(accentColor.copy(alpha = 0.3f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = box.emoji, fontSize = 28.sp)
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Text content
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Open when you're",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = DeepWarmBrown.copy(alpha = 0.5f),
+                    letterSpacing = 0.5.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = box.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = DeepWarmBrown
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = box.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DeepWarmBrown.copy(alpha = 0.55f)
+                )
+            }
+
+            // Chevron
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier.size(24.dp)
             )
         }
     }
