@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override ExoPlayer default dimensional values -->
+    <dimen name="exo_styled_progress_margin_bottom">10dp</dimen>
+</resources>

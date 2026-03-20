@@ -15,18 +15,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.example.birthdayapp.data.model.BirthdayBox
-import com.example.birthdayapp.ui.features.dashboard.DashboardScreen
-import com.example.birthdayapp.ui.features.openwhen.OpenWhenPlayerScreen
-import com.example.birthdayapp.ui.features.reveal.BirthdayRevealScreen
-import com.example.birthdayapp.ui.theme.BirthdayAppTheme
+import com.example.birthdayapp.model.BirthdayBox
+import com.example.birthdayapp.screens.DashboardScreen
+import com.example.birthdayapp.screens.OpenWhenPlayerScreen
+import com.example.birthdayapp.screens.BirthdayRevealScreen
+import com.example.birthdayapp.theme.BirthdayAppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
-import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
@@ -59,8 +58,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                val isBahar = HeartbeatConfig.THIS_USER_ID == "user_b"
+
                 // Start unlocked if the gift was already opened on a previous launch
-                var isUnlocked by remember { mutableStateOf(alreadyOpened) }
+                var isUnlocked by remember { mutableStateOf(!isBahar || alreadyOpened) }
                 var selectedBox by remember { mutableStateOf<BirthdayBox?>(null) }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

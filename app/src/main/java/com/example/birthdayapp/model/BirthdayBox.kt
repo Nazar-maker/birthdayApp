@@ -1,4 +1,4 @@
-package com.example.birthdayapp.data.model
+package com.example.birthdayapp.model
 
 data class BirthdayBox(
     val id: String,

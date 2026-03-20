@@ -242,6 +242,9 @@ fun BirthdayRevealScreen(onPlayVideo: () -> Unit) {
                                             setShowRewindButton(false)
                                             controllerShowTimeoutMs = 2500
                                             resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                            
+                                            // Hide settings and duration timer, keeping only play/pause and progress bar
+                                            findViewById<android.view.View>(androidx.media3.ui.R.id.exo_bottom_bar)?.visibility = android.view.View.GONE
                                         }
                                 },
                                 modifier = Modifier.fillMaxSize()

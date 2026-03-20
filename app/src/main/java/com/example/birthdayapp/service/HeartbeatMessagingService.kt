@@ -40,16 +40,17 @@ class HeartbeatMessagingService : FirebaseMessagingService() {
             getSystemService(Vibrator::class.java)
         }
 
-        // lub-dub × 3  (lub = 150ms, tiny gap = 80ms, dub = 200ms, long gap = 700ms)
+        // More intense: lub-dub × 3  (lub = 150ms, tiny gap = 80ms, dub = 250ms, long gap = 600ms)
         val pattern = longArrayOf(
-            0, 150, 80, 200, 700,
-            150, 80, 200, 700,
-            150, 80, 200, 700
+            0, 150, 80, 250, 600,
+            150, 80, 250, 600,
+            150, 80, 250, 600
         )
+        // Amplitudes increased to max (255 represents maximum amplitude)
         val amplitudes = intArrayOf(
-            0, 180, 0, 220, 0,
-            180, 0, 220, 0,
-            180, 0, 220, 0
+            0, 255, 0, 255, 0,
+            255, 0, 255, 0,
+            255, 0, 255, 0
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -61,17 +62,19 @@ class HeartbeatMessagingService : FirebaseMessagingService() {
     }
 
     private fun showNotification(senderName: String) {
-        val channelId = "heartbeat_channel"
+        // Change the channel ID so Android rebuilds it with the new silent rules
+        val channelId = "heartbeat_channel_silent"
         val notificationManager = getSystemService(NotificationManager::class.java)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
                 "Heartbeat",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_HIGH // HIGH is needed to show popup on screen
             ).apply {
                 description = "Heartbeat pings from your loved one"
                 enableVibration(false) // vibration is handled manually above
+                setSound(null, null) // SILENT: Remove notification sound entirely
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -80,7 +83,10 @@ class HeartbeatMessagingService : FirebaseMessagingService() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("💗 Thinking of You")
             .setContentText("$senderName is thinking about you!")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) 
+            .setDefaults(0) // Remove any default notification effects (like sound)
+            .setVibrate(longArrayOf(0L)) // Add a dummy vibration to prevent system default vibration override
+            .setSound(null) // Ensure sound is completely silent
             .setAutoCancel(true)
             .build()
 
