@@ -2,13 +2,12 @@ package com.example.birthdayapp
 
 object HeartbeatConfig {
     /**
-     * Change THIS_USER_ID before building for each device:
-     *   - Build with "user_a" and install on YOUR phone
-     *   - Build with "user_b" and install on HER phone
+     * Now automatically managed by BuildConfig Product Flavors (forHim vs forHer)
+     * You no longer need to change this manually!
      */
-    const val THIS_USER_ID = "user_b"
-    val OTHER_USER_ID = if (THIS_USER_ID == "user_a") "user_b" else "user_a"
+    val THIS_USER_ID = BuildConfig.THIS_USER_ID
+    val OTHER_USER_ID = BuildConfig.OTHER_USER_ID
 
     // Display names shown in the notification body
-    val SENDER_NAME = if (THIS_USER_ID == "user_a") "Nazar" else "Bahar"
+    val SENDER_NAME = BuildConfig.SENDER_NAME
 }

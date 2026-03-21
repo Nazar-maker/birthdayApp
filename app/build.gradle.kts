@@ -19,6 +19,31 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions.add("user")
+
+    productFlavors {
+        create("forHim") {
+            dimension = "user"
+            
+            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_bahar"
+            manifestPlaceholders["appIconRound"] = "@mipmap/ic_launcher_bahar_round" // Change if you don't have a round version
+            
+            buildConfigField("String", "THIS_USER_ID", "\"user_a\"")
+            buildConfigField("String", "OTHER_USER_ID", "\"user_b\"")
+            buildConfigField("String", "SENDER_NAME", "\"Nazar\"")
+        }
+        create("forHer") {
+            dimension = "user"
+            
+            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_nazar"
+            manifestPlaceholders["appIconRound"] = "@mipmap/ic_launcher_nazar_round" // Change if you don't have a round version
+        
+            buildConfigField("String", "THIS_USER_ID", "\"user_b\"")
+            buildConfigField("String", "OTHER_USER_ID", "\"user_a\"")
+            buildConfigField("String", "SENDER_NAME", "\"Bahar\"")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -34,6 +59,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
